@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Prayer Times</title>
+<script>
+fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById('fajr').innerText = data.data.timings.Fajr;
+    document.getElementById('dhuhr').innerText = data.data.timings.Dhuhr;
+    document.getElementById('asr').innerText = data.data.timings.Asr;
+    document.getElementById('maghrib').innerText = data.data.timings.Maghrib;
+    document.getElementById('isha').innerText = data.data.timings.Isha;
+  });
+</script>
+</head>
+<body>
+<h2>Prayer Times</h2>
+<p>Fajr: <span id="fajr"></span></p>
+<p>Dhuhr: <span id="dhuhr"></span></p>
+<p>Asr: <span id="asr"></span></p>
+<p>Maghrib: <span id="maghrib"></span></p>
+<p>Isha: <span id="isha"></span></p>
+</body>
+</html>
