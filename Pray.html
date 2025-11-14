@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Prayer Times</title>
+<title>مواقيت الصلاة</title>
 <script>
 fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
   .then(response => response.json())
   .then(data => {
+    document.getElementById('ar').innerText = data.data.date.ar;
     document.getElementById('fajr').innerText = data.data.timings.Fajr;
+    document.getElementById('Sunrise').innerText = data.data.timings.Sunrise;
     document.getElementById('dhuhr').innerText = data.data.timings.Dhuhr;
     document.getElementById('asr').innerText = data.data.timings.Asr;
     document.getElementById('maghrib').innerText = data.data.timings.Maghrib;
@@ -15,11 +17,13 @@ fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
 </script>
 </head>
 <body>
-<h2>Prayer Times</h2>
-<p>Fajr: <span id="fajr"></span></p>
-<p>Dhuhr: <span id="dhuhr"></span></p>
-<p>Asr: <span id="asr"></span></p>
-<p>Maghrib: <span id="maghrib"></span></p>
-<p>Isha: <span id="isha"></span></p>
+<h2>مواقيت الصلاة</h2>
+<p>اليوم : <span id="ar"></span></p>
+<p>صلاة الفجر: <span id="fajr"></span></p>
+<p>شروق الشمس: <span id="Sunrise"></span></p>
+<p>صلاة الظهر: <span id="dhuhr"></span></p>
+<p>صلاة العصر: <span id="asr"></span></p>
+<p>صلاة المغرب: <span id="maghrib"></span></p>
+<p>صلاة العشاء: <span id="isha"></span></p>
 </body>
 </html>
