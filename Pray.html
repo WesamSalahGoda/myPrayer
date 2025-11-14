@@ -6,7 +6,7 @@
 fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
   .then(response => response.json())
   .then(data => {
-    document.getElementById('ar').innerText = data.data.date.ar;
+    document.getElementById('ar').innerText = data.date.hijri.weekday.ar;
     document.getElementById('fajr').innerText = data.data.timings.Fajr;
     document.getElementById('Sunrise').innerText = data.data.timings.Sunrise;
     document.getElementById('dhuhr').innerText = data.data.timings.Dhuhr;
