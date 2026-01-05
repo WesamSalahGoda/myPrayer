@@ -16,15 +16,6 @@
         direction: rtl;
     }
 
-    .container {
-        background: #fff;
-        padding: 30px 40px;
-        border-radius: 18px;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-        text-align: center;
-        min-width: 330px;
-    }
-
     .date-box {
         margin-bottom: 20px;
         line-height: 1.8;
@@ -69,6 +60,12 @@
     .time {
         font-weight: bold;
     }
+
+.dates-container {
+    display: flex;
+    gap: 15px; /* مسافة بين التاريخين */
+    align-items: center; /* لضبطهم على نفس المستوى عموديًا */
+}
 
     #countdownBox {
         margin-top: 20px;
@@ -165,10 +162,14 @@ fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
 <div class="container">
 
     <div class="date-box">
-		<div class="day">مواقيت الصلاة ليوم</div>
-        <div class="day" id="day"></div>
-        <div class="hijri">📅 <span id="hijriDate"></span></div>
-        <div class="gregorian">📆 <span id="gregorianDate"></span></div>
+	<span class="day">مواقيت الصلاة ليوم</span>
+	<span class="day" id="day"></span>
+        
+<div class="dates-container">
+    <div class="hijri">📅 <span id="hijriDate"></span></div>
+    <div class="gregorian">📆 <span id="gregorianDate"></span></div>
+</div>
+
     </div>
 
     <div class="prayer" id="fajr">🌅 موعد صلاة الفجر <span class="time" id="fajr-time"></span></div>
@@ -185,8 +186,3 @@ fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
 </div>
 </body>
 </html>
-
-
-
-
-
