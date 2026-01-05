@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>مواقيت الصلاة</title>
+
+<style>
+    body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #e8f0ff, #ffffff);
+        font-family: "Segoe UI", Tahoma;
+        direction: rtl;
+    }
+
+    .container {
+        background: #fff;
+        padding: 30px 40px;
+        border-radius: 18px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        text-align: center;
+        min-width: 330px;
+    }
+
+    .date-box {
+        margin-bottom: 20px;
+        line-height: 1.8;
+    }
+
+    .day {
+        font-size: 22px;
+        font-weight: bold;
+        color: #2c5cc5;
+    }
+
+    .hijri {
+        font-size: 16px;
+        color: #444;
+    }
+
+    .gregorian {
+        font-size: 15px;
+        color: #666;
+    }
+
+    .prayer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 18px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-bottom: 6px;
+    }
+
+    .prayer:not(.next) {
+        border-bottom: 1px dashed #ddd;
+    }
+
+    .next {
+        background: #e6f4ff;
+        color: #0b5ed7;
+        font-weight: bold;
+    }
+
+    .time {
+        font-weight: bold;
+    }
+
+    #countdownBox {
+        margin-top: 20px;
+        background: #f5f7ff;
+        padding: 12px;
+        border-radius: 12px;
+        font-size: 18px;
+        color: #1f3c88;
+    }
+</style>
+
+<script>
+function to12HourArabic(time24) {
+    const [hour, minute] = time24.split(':').map(Number);
+    const period = hour >= 12 ? 'م' : 'ص';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
+}
+
+function getPrayerDate(time, addDay = 0) {
+    const now = new Date();
+    const [h, m] = time.split(':').map(Number);
+    return new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + addDay,
+        h, m, 0
+    );
+}
+
+fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
+.then(res => res.json())
+.then(data => {
+
+    const timings = data.data.timings;
+    const hijri = data.data.date.hijri;
+    const gregorian = data.data.date.gregorian;
+
+    // التاريخ
+    document.getElementById('day').innerText = hijri.weekday.ar;
+    document.getElementById('hijriDate').innerText =
+        `${hijri.day} ${hijri.month.ar} ${hijri.year} هـ`;
+    document.getElementById('gregorianDate').innerText =
+	`${gregorian.day} / ${gregorian.month.number} / ${gregorian.year} م`;
+
+    const prayers = [
+        { name: 'الفجر', time: timings.Fajr, id: 'fajr' },
+        { name: 'الشروق', time: timings.Sunrise, id: 'sunrise' },
+        { name: 'الظهر', time: timings.Dhuhr, id: 'dhuhr' },
+        { name: 'العصر', time: timings.Asr, id: 'asr' },
+        { name: 'المغرب', time: timings.Maghrib, id: 'maghrib' },
+        { name: 'العشاء', time: timings.Isha, id: 'isha' }
+    ];
+
+    prayers.forEach(p => {
+        document.getElementById(p.id + '-time').innerText = to12HourArabic(p.time);
+    });
+
+    function updateCountdown() {
+        const now = new Date();
+        let nextIndex = -1;
+
+        prayers.forEach((p, i) => {
+            const prayerTime = getPrayerDate(p.time);
+            document.getElementById(p.id).classList.remove('next');
+            if (nextIndex === -1 && prayerTime > now) nextIndex = i;
+        });
+
+        if (nextIndex === -1) nextIndex = 0;
+
+        const nextPrayer = prayers[nextIndex];
+        const prayerDate = nextIndex === 0 && getPrayerDate(prayers[0].time) < now
+            ? getPrayerDate(prayers[0].time, 1)
+            : getPrayerDate(nextPrayer.time);
+
+        document.getElementById(nextPrayer.id).classList.add('next');
+
+        const diff = prayerDate - now;
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+
+        document.getElementById('countdown').innerText =
+            `${h} ساعة ${m} دقيقة ${s} ثانية`;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+});
+</script>
+</head>
+
+<body>
+<div class="container">
+
+    <div class="date-box">
+        <div class="day" id="day"></div>
+        <div class="hijri">📅 <span id="hijriDate"></span></div>
+        <div class="gregorian">📆 <span id="gregorianDate"></span></div>
+    </div>
+
+    <div class="prayer" id="fajr">🌅 الفجر <span class="time" id="fajr-time"></span></div>
+    <div class="prayer" id="sunrise">☀️ الشروق <span class="time" id="sunrise-time"></span></div>
+    <div class="prayer" id="dhuhr">🕛 الظهر <span class="time" id="dhuhr-time"></span></div>
+    <div class="prayer" id="asr">🕒 العصر <span class="time" id="asr-time"></span></div>
+    <div class="prayer" id="maghrib">🌇 المغرب <span class="time" id="maghrib-time"></span></div>
+    <div class="prayer" id="isha">🌙 العشاء <span class="time" id="isha-time"></span></div>
+
+    <div id="countdownBox">
+        متبقي على الصلاة القادمة: <strong id="countdown"></strong>
+    </div>
+
+</div>
+</body>
+</html>
