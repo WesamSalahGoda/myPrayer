@@ -2,38 +2,47 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>مواقيت الصلاة</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2c5cc5">
+<title>Prayer Widget</title>
 
 <style>
     body {
         margin: 0;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: linear-gradient(135deg, #e8f0ff, #ffffff);
+        padding: 0;
+        background: transparent;
         font-family: "Segoe UI", Tahoma;
         direction: rtl;
     }
 
+
+
     .date-box {
-        margin-bottom: 20px;
-        line-height: 1.8;
+        margin-bottom: 15px;
+        line-height: 1.6;
+        text-align: center;
     }
 
     .day {
-        font-size: 22px;
+        font-size: 18px;
         font-weight: bold;
         color: #2c5cc5;
     }
 
+    .dates-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 4px;
+    }
+
     .hijri {
-        font-size: 16px;
+        font-size: 14px;
         color: #444;
     }
 
     .gregorian {
-        font-size: 15px;
+        font-size: 13px;
         color: #666;
     }
 
@@ -41,10 +50,11 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 18px;
-        padding: 8px 12px;
+        font-size: 15px;
+        padding: 6px 10px;
         border-radius: 8px;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
+        text-align: right;
     }
 
     .prayer:not(.next) {
@@ -57,22 +67,23 @@
         font-weight: bold;
     }
 
-    .time {
-        font-weight: bold;
+    .prayer-name {
+        display: inline-block;
+        text-align: right;
     }
 
-.dates-container {
-    display: flex;
-    gap: 15px; /* مسافة بين التاريخين */
-    align-items: center; /* لضبطهم على نفس المستوى عموديًا */
-}
+    .time {
+        font-weight: bold;
+        white-space: nowrap;
+    }
 
     #countdownBox {
-        margin-top: 20px;
+        margin-top: 10px;
         background: #f5f7ff;
-        padding: 12px;
-        border-radius: 12px;
-        font-size: 18px;
+        padding: 8px;
+        border-radius: 10px;
+        font-size: 15px;
+        text-align: center;
         color: #1f3c88;
     }
 </style>
@@ -104,24 +115,27 @@ fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
     const hijri = data.data.date.hijri;
     const gregorian = data.data.date.gregorian;
 
-    // التاريخ
     document.getElementById('day').innerText = hijri.weekday.ar;
     document.getElementById('hijriDate').innerText =
         `${hijri.day} ${hijri.month.ar} ${hijri.year} هـ`;
     document.getElementById('gregorianDate').innerText =
-	`${gregorian.day} / ${gregorian.month.number} / ${gregorian.year} م`;
+        `${gregorian.day} / ${gregorian.month.number} / ${gregorian.year}`;
+
+    const dhuhrName = hijri.weekday.ar === "الجمعة" ? "الجمعة" : "الظهر";
+    document.getElementById('dhuhr-name').innerText = dhuhrName;
 
     const prayers = [
-        { name: 'الفجر', time: timings.Fajr, id: 'fajr' },
-        { name: 'الشروق', time: timings.Sunrise, id: 'sunrise' },
-        { name: 'الظهر', time: timings.Dhuhr, id: 'dhuhr' },
-        { name: 'العصر', time: timings.Asr, id: 'asr' },
-        { name: 'المغرب', time: timings.Maghrib, id: 'maghrib' },
-        { name: 'العشاء', time: timings.Isha, id: 'isha' }
+        { time: timings.Fajr, id: 'fajr' },
+        { time: timings.Sunrise, id: 'sunrise' },
+        { time: timings.Dhuhr, id: 'dhuhr' },
+        { time: timings.Asr, id: 'asr' },
+        { time: timings.Maghrib, id: 'maghrib' },
+        { time: timings.Isha, id: 'isha' }
     ];
 
     prayers.forEach(p => {
-        document.getElementById(p.id + '-time').innerText = to12HourArabic(p.time);
+        document.getElementById(p.id + '-time').innerText =
+            to12HourArabic(p.time);
     });
 
     function updateCountdown() {
@@ -156,34 +170,58 @@ fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
     setInterval(updateCountdown, 1000);
 });
 </script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
 </head>
 
 <body>
-<div class="container">
 
-    <div class="date-box">
-	<span class="day">مواقيت الصلاة ليوم</span>
-	<span class="day" id="day"></span>
-        
-<div class="dates-container">
-    <div class="hijri">📅 <span id="hijriDate"></span></div>
-    <div class="gregorian">📆 <span id="gregorianDate"></span></div>
-</div>
-
+<div class="date-box">
+        <div class="day"> مواقيت الصلاة ليوم <span id="day"></span></div>
+        <div class="dates-container">
+            <div class="hijri">📅 <span id="hijriDate"></span></div>
+            <div class="gregorian"> الموافق <span id="gregorianDate"></span> م </div>
+        </div>
     </div>
 
-    <div class="prayer" id="fajr">🌅  صلاة الفجر <span class="time" id="fajr-time"></span></div>
-    <div class="prayer" id="sunrise">☀️  شروق الشمس <span class="time" id="sunrise-time"></span></div>
-    <div class="prayer" id="dhuhr">🕛  صلاة الظهر <span class="time" id="dhuhr-time"></span></div>
-    <div class="prayer" id="asr">🕒  صلاة العصر <span class="time" id="asr-time"></span></div>
-    <div class="prayer" id="maghrib">🌇  صلاة المغرب <span class="time" id="maghrib-time"></span></div>
-    <div class="prayer" id="isha">🌙  صلاة العشاء <span class="time" id="isha-time"></span></div>
+    <div class="prayer" id="fajr">
+        <span class="prayer-name">🌅 الفجر</span>
+        <span class="time" id="fajr-time"></span>
+    </div>
+
+    <div class="prayer" id="sunrise">
+        <span class="prayer-name">☀️ الشروق</span>
+        <span class="time" id="sunrise-time"></span>
+    </div>
+
+    <div class="prayer" id="dhuhr">
+        <span class="prayer-name">🕛 <span id="dhuhr-name"></span></span>
+        <span class="time" id="dhuhr-time"></span>
+    </div>
+
+    <div class="prayer" id="asr">
+        <span class="prayer-name">🕒 العصر</span>
+        <span class="time" id="asr-time"></span>
+    </div>
+
+    <div class="prayer" id="maghrib">
+        <span class="prayer-name">🌇 المغرب</span>
+        <span class="time" id="maghrib-time"></span>
+    </div>
+
+    <div class="prayer" id="isha">
+        <span class="prayer-name">🌙 العشاء</span>
+        <span class="time" id="isha-time"></span>
+    </div>
 
     <div id="countdownBox">
-        متبقي : <strong id="countdown"></strong>
+        متبقي: <strong id="countdown"></strong>
     </div>
 
-</div>
 </body>
 </html>
-
