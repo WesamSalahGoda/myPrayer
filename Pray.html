@@ -7,85 +7,81 @@
 <title>Prayer Widget</title>
 
 <style>
-    body {
-        margin: 0;
-        padding: 0;
-        background: transparent;
-        font-family: "Segoe UI", Tahoma;
-        direction: rtl;
-    }
+body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    font-family: "Segoe UI", Tahoma;
+    direction: rtl;
+}
 
+.date-box {
+    margin-bottom: 15px;
+    line-height: 1.6;
+    text-align: center;
+}
 
+.day {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c5cc5;
+}
 
-    .date-box {
-        margin-bottom: 15px;
-        line-height: 1.6;
-        text-align: center;
-    }
+.dates-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 4px;
+}
 
-    .day {
-        font-size: 18px;
-        font-weight: bold;
-        color: #2c5cc5;
-    }
+.hijri {
+    font-size: 14px;
+    color: #444;
+}
 
-    .dates-container {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin-top: 4px;
-    }
+.gregorian {
+    font-size: 13px;
+    color: #666;
+}
 
-    .hijri {
-        font-size: 14px;
-        color: #444;
-    }
+.prayer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+}
 
-    .gregorian {
-        font-size: 13px;
-        color: #666;
-    }
+.prayer:not(.next) {
+    border-bottom: 1px dashed #ddd;
+}
 
-    .prayer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 15px;
-        padding: 6px 10px;
-        border-radius: 8px;
-        margin-bottom: 4px;
-        text-align: right;
-    }
+.next {
+    background: #e6f4ff;
+    color: #0b5ed7;
+    font-weight: bold;
+}
 
-    .prayer:not(.next) {
-        border-bottom: 1px dashed #ddd;
-    }
+.prayer-name {
+    text-align: right;
+}
 
-    .next {
-        background: #e6f4ff;
-        color: #0b5ed7;
-        font-weight: bold;
-    }
+.time {
+    font-weight: bold;
+    white-space: nowrap;
+}
 
-    .prayer-name {
-        display: inline-block;
-        text-align: right;
-    }
-
-    .time {
-        font-weight: bold;
-        white-space: nowrap;
-    }
-
-    #countdownBox {
-        margin-top: 10px;
-        background: #f5f7ff;
-        padding: 8px;
-        border-radius: 10px;
-        font-size: 15px;
-        text-align: center;
-        color: #1f3c88;
-    }
+#countdownBox {
+    margin-top: 10px;
+    background: #f5f7ff;
+    padding: 8px;
+    border-radius: 10px;
+    font-size: 15px;
+    text-align: center;
+    color: #1f3c88;
+}
 </style>
 
 <script>
@@ -107,10 +103,7 @@ function getPrayerDate(time, addDay = 0) {
     );
 }
 
-fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
-.then(res => res.json())
-.then(data => {
-
+function renderPrayerData(data) {
     const timings = data.data.timings;
     const hijri = data.data.date.hijri;
     const gregorian = data.data.date.gregorian;
@@ -151,7 +144,8 @@ fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
         if (nextIndex === -1) nextIndex = 0;
 
         const nextPrayer = prayers[nextIndex];
-        const prayerDate = nextIndex === 0 && getPrayerDate(prayers[0].time) < now
+        const prayerDate =
+            nextIndex === 0 && getPrayerDate(prayers[0].time) < now
             ? getPrayerDate(prayers[0].time, 1)
             : getPrayerDate(nextPrayer.time);
 
@@ -168,60 +162,74 @@ fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
 
     updateCountdown();
     setInterval(updateCountdown, 1000);
-});
-</script>
+}
 
-<script>
+/* ===== Fetch with Offline Support ===== */
+fetch('https://api.aladhan.com/v1/timingsByAddress?address=Cairo,Egypt')
+.then(res => res.json())
+.then(data => {
+    localStorage.setItem("prayerData", JSON.stringify(data));
+    renderPrayerData(data);
+})
+.catch(() => {
+    const cached = localStorage.getItem("prayerData");
+    if (cached) {
+        renderPrayerData(JSON.parse(cached));
+    } else {
+        alert("لا يوجد اتصال بالإنترنت ولا بيانات محفوظة");
+    }
+});
+
+/* ===== Service Worker ===== */
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
+    navigator.serviceWorker.register("service-worker.js");
 }
 </script>
-
 </head>
 
 <body>
 
 <div class="date-box">
-        <div class="day"> مواقيت الصلاة ليوم <span id="day"></span></div>
-        <div class="dates-container">
-            <div class="hijri">📅 <span id="hijriDate"></span></div>
-            <div class="gregorian"> الموافق <span id="gregorianDate"></span> م </div>
-        </div>
+    <div class="day">مواقيت الصلاة ليوم <span id="day"></span></div>
+    <div class="dates-container">
+        <div class="hijri">📅 <span id="hijriDate"></span></div>
+        <div class="gregorian">الموافق <span id="gregorianDate"></span> م</div>
     </div>
+</div>
 
-    <div class="prayer" id="fajr">
-        <span class="prayer-name">🌅 الفجر</span>
-        <span class="time" id="fajr-time"></span>
-    </div>
+<div class="prayer" id="fajr">
+    <span class="prayer-name">🌅 الفجر</span>
+    <span class="time" id="fajr-time"></span>
+</div>
 
-    <div class="prayer" id="sunrise">
-        <span class="prayer-name">☀️ الشروق</span>
-        <span class="time" id="sunrise-time"></span>
-    </div>
+<div class="prayer" id="sunrise">
+    <span class="prayer-name">☀️ الشروق</span>
+    <span class="time" id="sunrise-time"></span>
+</div>
 
-    <div class="prayer" id="dhuhr">
-        <span class="prayer-name">🕛 <span id="dhuhr-name"></span></span>
-        <span class="time" id="dhuhr-time"></span>
-    </div>
+<div class="prayer" id="dhuhr">
+    <span class="prayer-name">🕛 <span id="dhuhr-name"></span></span>
+    <span class="time" id="dhuhr-time"></span>
+</div>
 
-    <div class="prayer" id="asr">
-        <span class="prayer-name">🕒 العصر</span>
-        <span class="time" id="asr-time"></span>
-    </div>
+<div class="prayer" id="asr">
+    <span class="prayer-name">🕒 العصر</span>
+    <span class="time" id="asr-time"></span>
+</div>
 
-    <div class="prayer" id="maghrib">
-        <span class="prayer-name">🌇 المغرب</span>
-        <span class="time" id="maghrib-time"></span>
-    </div>
+<div class="prayer" id="maghrib">
+    <span class="prayer-name">🌇 المغرب</span>
+    <span class="time" id="maghrib-time"></span>
+</div>
 
-    <div class="prayer" id="isha">
-        <span class="prayer-name">🌙 العشاء</span>
-        <span class="time" id="isha-time"></span>
-    </div>
+<div class="prayer" id="isha">
+    <span class="prayer-name">🌙 العشاء</span>
+    <span class="time" id="isha-time"></span>
+</div>
 
-    <div id="countdownBox">
-        متبقي: <strong id="countdown"></strong>
-    </div>
+<div id="countdownBox">
+    متبقي: <strong id="countdown"></strong>
+</div>
 
 </body>
 </html>
